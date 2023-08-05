@@ -1,7 +1,13 @@
 [package]
 name = "fog-db-traits"
 version = "0.1.0"
+authors = ["Scott Teal"]
+readme = "README.md"
+repository = "https://github.com/Cognoscan/fog-db-traits"
+homepage = "https://github.com/Cognoscan/fog-db-traits"
 edition = "2021"
+description = "database traits to be implemented by fog-db databases"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
