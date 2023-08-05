@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-fog-pack = "0.4.1"
+fog-pack = "0.4.2"
 fog-crypto = "0.4"
 async-trait = "0.1"
 thiserror = "1"
