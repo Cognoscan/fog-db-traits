@@ -1,3 +1,10 @@
+//! The database trasaction interface.
+//!
+//! Transactions can be executed on the local database, both for local
+//! communication and as a way of talking to remote nodes. Transactions follow
+//! ACID properties, and can consist of adding documents, and either adding,
+//! modifying, or removing entries. Managing schemas and database root names is
+//! outside the scope of the transaction interface.
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
@@ -12,7 +19,7 @@ use fog_pack::{
 };
 use thiserror::Error;
 
-use crate::{DbCommit, DbResult, Policy};
+use crate::{DbCommit, DbResult, cert::Policy, };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CommitError {
@@ -318,6 +325,7 @@ impl Transaction {
     }
 }
 
+/// A document, fully encoded and ready for the database.
 pub struct EncodedDoc {
     schema: Option<Hash>,
     data: Vec<u8>,
@@ -343,10 +351,12 @@ impl EncodedDoc {
         )
     }
 
+    /// The document's schema.
     pub fn schema(&self) -> &Option<Hash> {
         &self.schema
     }
 
+    /// The raw encoded document.
     pub fn data(&self) -> &[u8] {
         &self.data
     }
@@ -357,6 +367,7 @@ impl EncodedDoc {
     }
 }
 
+/// An entry, fully encoded and ready for the database.
 pub struct EncodedEntry {
     data: Vec<u8>,
     all_refs: Vec<Hash>,
@@ -393,6 +404,10 @@ impl EncodedEntry {
     }
 }
 
+/// A change to a document in the database, consisting of either an Add
+/// operation or a Modify operation. Documents cannot be deleted directly;
+/// instead, they are dropped once all references to them are gone or have been
+/// weakened.
 pub enum DocChange {
     /// Add a document to the DB
     Add {
@@ -426,6 +441,8 @@ impl DocChange {
     }
 }
 
+/// A change to an entry in the database, consisting of either an Add, Modify,
+/// or Delete operation.
 pub enum EntryChange {
     Add {
         entry: Box<EncodedEntry>,

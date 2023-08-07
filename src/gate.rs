@@ -1,16 +1,27 @@
-use std::{sync::Arc, fmt::Display};
+//! The Database access Gate interface. Used for opening up the database to
+//! remote nodes.
+//!
+//! A [`Gate`] is an open access point by which remote nodes can connect to your
+//! local database for document retrieval and querying, via the
+//! [`cursor`][crate::cursor] API.
 
-use crate::{Policy, NodeAddr};
+use std::{fmt::Display, sync::Arc};
+
+use crate::{cert::Policy, NodeInfo};
+use crate::NodeAddr;
 use async_trait::async_trait;
-use fog_pack::{types::Hash, document::Document, entry::Entry, query::Query};
+use fog_pack::{document::Document, entry::Entry, query::Query, types::Hash};
 use thiserror::Error;
-
 
 pub struct GateSettings {
     /// An advisory policy for which nodes to give preferential treatment to.
     pub prefer: Policy,
     /// Open the gate for *only* these specific nodes
     pub nodes: Vec<NodeAddr>,
+    /// How many cursors a node is permitted to have open through this gate.
+    pub cursors: u32,
+    /// How many total cursors may be opened within this gate
+    pub total_cursors: u32,
 }
 
 /// An open Gate. Allows other nodes in a network to read the database with a
@@ -21,8 +32,11 @@ pub struct GateSettings {
 /// for cursor navigation.
 pub trait Gate {
     /// Get a list of what nodes are currently actively using a cursor within
-    /// this gate.
-    fn attached(&self) -> Vec<NodeAddr>;
+    /// this gate, and how many cursors they have open.
+    fn attached(&self) -> Vec<(NodeInfo, u32)>;
+
+    /// How many cursors are currently open on this gate.
+    fn total_cursors(&self) -> u32;
 
     /// Add a hook for handling all incoming queries on a specific document,
     /// scoped to just nodes that came in through this Gate. When a hook is
@@ -50,7 +64,7 @@ pub trait ResponseStream {
 
 /// Failure to send a hook response
 #[derive(Clone, Debug)]
-pub struct  ResponseError(pub Response);
+pub struct ResponseError(pub Response);
 
 impl Display for ResponseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

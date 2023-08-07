@@ -1,3 +1,10 @@
+//! Certificate and Policy API.
+//!
+//! Access to the database and queries on remote databases are often limited by
+//! an access [`Policy`], which sets up what [`Identities`][Identity] are
+//! allowed to be connected to. These policies require setting up relations
+//! between Identities, which is accomplished with [Certificates][Cert].
+
 use fog_pack::types::*;
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroU8;
