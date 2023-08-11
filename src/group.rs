@@ -5,6 +5,7 @@
 //! nodes can be aggregated over multiple network types, and can be specified by
 //! a [`Policy`].
 
+use fog_crypto::identity::IdentityKey;
 use fog_pack::types::*;
 
 use crate::{gate::{GateSettings, Gate}, cursor::ForkCursor, cert::Policy, NetInfo};
@@ -17,12 +18,14 @@ pub trait Group {
     /// parameters cannot be open at the same hash, in which case this function
     /// should return None.
     ///
-    /// 1. If a gate was opened without any specific nodes listed, no other
-    ///     gates can be opened at the same hash.
-    /// 2. If a gate was opened with a specific set of nodes listed, no gate can
-    ///     be opened without listing specific nodes while that one is still
-    ///     open, and new ones with specific nodes must not have any of the
-    ///     *same* nodes.
+    /// For a given hash:
+    ///
+    /// 1. If a gate is open without a specific node listed, no other gates may
+    ///     be opened.
+    /// 2. If at least one gate is open with a specific node listed, other gates
+    ///     with specific nodes may be opened, but all nodes across open gates
+    ///     must be unique.
+    ///
     fn gate(&self, gate: &Hash, settings: Option<GateSettings>) -> Option<Box<dyn Gate>>;
 
     /// Prepare a new cursor for use, starting from the given hash.
@@ -33,14 +36,14 @@ pub trait Group {
 /// group, whether mixnet capabilities are required, and what specific nodes are
 /// allowed into the group.
 pub struct GroupSpec {
+    /// What public key (if any) should be used to identify oneself to other
+    /// nodes, and optionally what policy should be used to limit the group to
+    /// only nodes whose key passes said policy.
+    pub policy_settings: Option<(IdentityKey, Option<Policy>)>,
     /// What networks should be used when navigating this group.
     pub net: NetInfo,
     /// Whether or not a mixnet must be used when finding group members
     pub mixnet_locator: bool,
     /// Whether or not a mixnet must be used when communicating with group members.
     pub mixnet_comms: bool,
-    /// Policy for limiting which nodes the group is in contact with. Only
-    /// nodes whose permanent Identity passes the policy are allowed into the
-    /// group.
-    pub policy: Policy,
 }

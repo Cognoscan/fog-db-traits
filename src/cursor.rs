@@ -63,7 +63,7 @@ pub trait Cursor {
 
     /// Fork the cursor. Works like `forward_local` but produces a new cursor in
     /// the process - one that starts from the document it navigated to.
-    fn fork_local(&self) -> Result<Option<ForkValue>, CursorError> {
+    fn fork_local(&self) -> Result<Option<NewCursor>, CursorError> {
         let fork = self.fork();
         fork.complete_local()
     }
@@ -76,7 +76,7 @@ pub trait Cursor {
 }
 
 /// Successful result of forking a cursor.
-type ForkValue = (Box<dyn Cursor>, Arc<Document>);
+pub type NewCursor = (Box<dyn Cursor>, Arc<Document>);
 
 /// An active query on a document.
 #[async_trait]
@@ -115,11 +115,11 @@ pub enum Index {
 pub trait ForkCursor {
     /// Complete the opening of a new cursor, returning the document it was
     /// commanded to start from.
-    async fn complete(self: Box<Self>) -> Result<ForkValue, CursorError>;
+    async fn complete(self: Box<Self>) -> Result<NewCursor, CursorError>;
 
     /// Complete the opening of a new cursor, returning the document it was
     /// commanded to start from.
-    fn complete_local(self: Box<Self>) -> Result<Option<ForkValue>, CursorError>;
+    fn complete_local(self: Box<Self>) -> Result<Option<NewCursor>, CursorError>;
 }
 
 /// An indication of how useful a query was. This is advisory information for

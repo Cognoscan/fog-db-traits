@@ -16,8 +16,8 @@ use thiserror::Error;
 pub struct GateSettings {
     /// An advisory policy for which nodes to give preferential treatment to.
     pub prefer: Policy,
-    /// Open the gate for *only* these specific nodes
-    pub nodes: Vec<NodeAddr>,
+    /// Open the gate for only this node
+    pub node: Option<NodeAddr>,
     /// How many cursors a node is permitted to have open through this gate.
     pub cursors: u32,
     /// How many total cursors may be opened within this gate
